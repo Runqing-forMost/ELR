@@ -9,7 +9,6 @@ from utils import read_json, write_json
 
 
 class ConfigParser:
-
     __instance = None
 
     def __new__(cls, args, options='', timestamp=True):
@@ -57,11 +56,10 @@ class ConfigParser:
         save_dir = Path(self.config['trainer']['save_dir'])
         timestamp = datetime.now().strftime(r'%m%d_%H%M%S') if timestamp else ''
 
-
         if self.config['trainer']['asym']:
-            exper_name = self.config['name'] + '_asym_' + str(int(self.config['trainer']['percent']*100))
+            exper_name = self.config['name'] + '_asym_' + str(int(self.config['trainer']['percent'] * 100))
         else:
-            exper_name = self.config['name'] + '_sym_' + str(int(self.config['trainer']['percent']*100))
+            exper_name = self.config['name'] + '_sym_' + str(int(self.config['trainer']['percent'] * 100))
         self._save_dir = save_dir / 'models' / exper_name / timestamp
         self._log_dir = save_dir / 'log' / exper_name / timestamp
 

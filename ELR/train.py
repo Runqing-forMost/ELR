@@ -91,6 +91,10 @@ def main(config: ConfigParser):
 
 
 if __name__ == '__main__':
+    # This kind of coding style has following advantages:
+    # omitting many relative fixed hyper_parameter settings, since they are set in **.json file
+    # if you want to change some parameters, you can do it by args.add_argument() function.
+    # meanwhile, config object will be created according to json file and your command
     args = argparse.ArgumentParser(description='PyTorch Template')
     args.add_argument('-c', '--config', default='config_cifar10.json', type=str,
                       help='config file path (default: None)')

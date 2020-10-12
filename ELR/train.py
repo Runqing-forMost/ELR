@@ -1,8 +1,5 @@
 import argparse
 import collections
-import sys
-import requests
-import socket
 import torch
 import mlflow
 import mlflow.pytorch
@@ -14,7 +11,6 @@ from parse_config import ConfigParser
 from trainer import Trainer
 from collections import OrderedDict
 import random
-
 
 
 def log_params(conf: OrderedDict, parent_key: str = None):
@@ -31,20 +27,18 @@ def log_params(conf: OrderedDict, parent_key: str = None):
 
 
 def main(config: ConfigParser):
-
     logger = config.get_logger('train')
 
     data_loader = getattr(module_data, config['data_loader']['type'])(
         config['data_loader']['args']['data_dir'],
-        batch_size= config['data_loader']['args']['batch_size'],
+        batch_size=config['data_loader']['args']['batch_size'],
         shuffle=config['data_loader']['args']['shuffle'],
         validation_split=config['data_loader']['args']['validation_split'],
         num_batches=config['data_loader']['args']['num_batches'],
         training=True,
         num_workers=config['data_loader']['args']['num_workers'],
-        pin_memory=config['data_loader']['args']['pin_memory'] 
+        pin_memory=config['data_loader']['args']['pin_memory']
     )
-
 
     valid_data_loader = data_loader.split_validation()
 
@@ -59,7 +53,6 @@ def main(config: ConfigParser):
         num_workers=2
     ).split_validation()
 
-
     # build model architecture, then print to console
     model = config.initialize('arch', module_arch)
 
@@ -70,8 +63,9 @@ def main(config: ConfigParser):
     else:
         num_examp = len(data_loader.dataset)
 
-    train_loss = getattr(module_loss, config['train_loss']['type'])(num_examp=num_examp, num_classes=config['num_classes'],
-                                                            beta=config['train_loss']['args']['beta'])
+    train_loss = getattr(module_loss, config['train_loss']['type'])(num_examp=num_examp,
+                                                                    num_classes=config['num_classes'],
+                                                                    beta=config['train_loss']['args']['beta'])
 
     val_loss = getattr(module_loss, config['val_loss'])
     metrics = [getattr(module_metric, met) for met in config['metrics']]
@@ -98,7 +92,7 @@ def main(config: ConfigParser):
 
 if __name__ == '__main__':
     args = argparse.ArgumentParser(description='PyTorch Template')
-    args.add_argument('-c', '--config', default=None, type=str,
+    args.add_argument('-c', '--config', default='config_cifar10.json', type=str,
                       help='config file path (default: None)')
     args.add_argument('-r', '--resume', default=None, type=str,
                       help='path to latest checkpoint (default: None)')

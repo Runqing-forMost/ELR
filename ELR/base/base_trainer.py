@@ -70,10 +70,13 @@ class BaseTrainer:
         """
         not_improved_count = 0
 
+        # tqdm is a progress bar
         for epoch in tqdm(range(self.start_epoch, self.epochs + 1), desc='Total progress: '):
+            # warm up is zero, skip
             if epoch <= self.config['trainer']['warmup']:
                 result = self._warmup_epoch(epoch)
             else:
+                # implement at trainer file
                 result= self._train_epoch(epoch)
 
             

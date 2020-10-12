@@ -8,6 +8,7 @@ from utils import inf_loop
 import sys
 from sklearn.mixture import GaussianMixture
 
+
 class Trainer(BaseTrainer):
     """
     Trainer class
@@ -15,6 +16,7 @@ class Trainer(BaseTrainer):
     Note:
         Inherited from BaseTrainer.
     """
+
     def __init__(self, model, train_criterion, metrics, optimizer, config, data_loader,
                  valid_data_loader=None, test_data_loader=None, lr_scheduler=None, len_epoch=None, val_criterion=None):
         super().__init__(model, train_criterion, metrics, optimizer, config, val_criterion)
@@ -37,8 +39,7 @@ class Trainer(BaseTrainer):
         self.train_loss_list: List[float] = []
         self.val_loss_list: List[float] = []
         self.test_loss_list: List[float] = []
-        #Visdom visualization
-        
+        # Visdom visualization
 
     def _eval_metrics(self, output, label):
         acc_metrics = np.zeros(len(self.metrics))
@@ -71,18 +72,15 @@ class Trainer(BaseTrainer):
         with tqdm(self.data_loader) as progress:
             for batch_idx, (data, label, indexs, _) in enumerate(progress):
                 progress.set_description_str(f'Train epoch {epoch}')
-                
+
                 data, label = data.to(self.device), label.long().to(self.device)
-                
+
                 output = self.model(data)
 
                 loss = self.train_criterion(indexs.cpu().detach().numpy().tolist(), output, label)
                 self.optimizer.zero_grad()
                 loss.backward()
 
-
-
-                
                 self.optimizer.step()
 
                 self.writer.set_step((epoch - 1) * self.len_epoch + batch_idx)
@@ -90,7 +88,6 @@ class Trainer(BaseTrainer):
                 self.train_loss_list.append(loss.item())
                 total_loss += loss.item()
                 total_metrics += self._eval_metrics(output, label)
-
 
                 if batch_idx % self.log_step == 0:
                     progress.set_postfix_str(' {} Loss: {:.6f}'.format(
@@ -109,22 +106,19 @@ class Trainer(BaseTrainer):
             'learning rate': self.lr_scheduler.get_lr()
         }
 
-
         if self.do_validation:
             val_log = self._valid_epoch(epoch)
             log.update(val_log)
         if self.do_test:
             test_log, test_meta = self._test_epoch(epoch)
             log.update(test_log)
-        else: 
-            test_meta = [0,0]
-
+        else:
+            test_meta = [0, 0]
 
         if self.lr_scheduler is not None:
             self.lr_scheduler.step()
 
         return log
-
 
     def _valid_epoch(self, epoch):
         """
@@ -179,11 +173,11 @@ class Trainer(BaseTrainer):
         tar_ = np.zeros((len(self.test_data_loader.dataset),), dtype=np.float32)
         with torch.no_grad():
             with tqdm(self.test_data_loader) as progress:
-                for batch_idx, (data, label,indexs,_) in enumerate(progress):
+                for batch_idx, (data, label, indexs, _) in enumerate(progress):
                     progress.set_description_str(f'Test epoch {epoch}')
                     data, label = data.to(self.device), label.to(self.device)
                     output = self.model(data)
-                    
+
                     loss = self.val_criterion(output, label)
 
                     self.writer.set_step((epoch - 1) * len(self.test_data_loader) + batch_idx, 'test')
@@ -201,21 +195,19 @@ class Trainer(BaseTrainer):
             self.writer.add_histogram(name, p, bins='auto')
 
         return {
-            'test_loss': total_test_loss / len(self.test_data_loader),
-            'test_metrics': (total_test_metrics / len(self.test_data_loader)).tolist()
-        },[results,tar_]
-
+                   'test_loss': total_test_loss / len(self.test_data_loader),
+                   'test_metrics': (total_test_metrics / len(self.test_data_loader)).tolist()
+               }, [results, tar_]
 
     def _warmup_epoch(self, epoch):
         total_loss = 0
         total_metrics = np.zeros(len(self.metrics))
         self.model.train()
 
-        data_loader = self.data_loader#self.loader.run('warmup')
-
+        data_loader = self.data_loader  # self.loader.run('warmup')
 
         with tqdm(data_loader) as progress:
-            for batch_idx, (data, label, _, indexs , _) in enumerate(progress):
+            for batch_idx, (data, label, _, indexs, _) in enumerate(progress):
                 progress.set_description_str(f'Warm up epoch {epoch}')
 
                 data, label = data.to(self.device), label.long().to(self.device)
@@ -228,7 +220,7 @@ class Trainer(BaseTrainer):
 
                 loss = torch.nn.functional.cross_entropy(output, label)
 
-                loss.backward() 
+                loss.backward()
                 self.optimizer.step()
 
                 self.writer.set_step((epoch - 1) * self.len_epoch + batch_idx)
@@ -236,7 +228,6 @@ class Trainer(BaseTrainer):
                 self.train_loss_list.append(loss.item())
                 total_loss += loss.item()
                 total_metrics += self._eval_metrics(output, label)
-
 
                 if batch_idx % self.log_step == 0:
                     progress.set_postfix_str(' {} Loss: {:.6f}'.format(
@@ -250,7 +241,7 @@ class Trainer(BaseTrainer):
             self.data_loader.run()
         log = {
             'loss': total_loss / self.len_epoch,
-            'noise detection rate' : 0.0,
+            'noise detection rate': 0.0,
             'metrics': (total_metrics / self.len_epoch).tolist(),
             'learning rate': self.lr_scheduler.get_lr()
         }
@@ -261,11 +252,10 @@ class Trainer(BaseTrainer):
         if self.do_test:
             test_log, test_meta = self._test_epoch(epoch)
             log.update(test_log)
-        else: 
-            test_meta = [0,0]
+        else:
+            test_meta = [0, 0]
 
         return log
-
 
     def _progress(self, batch_idx):
         base = '[{}/{} ({:.0f}%)]'
